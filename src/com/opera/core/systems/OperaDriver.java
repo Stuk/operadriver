@@ -145,6 +145,13 @@ public class OperaDriver extends RemoteWebDriver implements TakesScreenshot {
   public static final String PROFILE = "opera.profile";
 
   /**
+   * (Object) Preferences to set in Opera. Should be a Map<String, Map<String, Object>>. When using
+   * RemoteWebDriver the serialized JSON should look like:
+   * {"Preference Section": {"Preference Key": "value", ...}, ...}
+   */
+  public static final String PREFERENCES = "opera.preferences";
+
+  /**
    * (Boolean) Whether to use Opera's alternative implicit wait implementation. It will use an
    * in-browser heuristic to guess when a page has finished loading, allowing us with great accuracy
    * tell whether there are any planned events in the document. This functionality is useful for
@@ -403,6 +410,18 @@ public class OperaDriver extends RemoteWebDriver implements TakesScreenshot {
     cookieManager = services.getCookieManager();
     // cookieManager.updateCookieSettings();
     preferences = new OperaScopePreferences(services.getPrefs());
+
+    Map<String, Map<String, Object>> prefs = (Map<String, Map<String, Object>>) capabilities.getCapability(PREFERENCES);
+    if (prefs != null) {
+      for (Map.Entry<String, Map<String, Object>> sectionPrefs : prefs.entrySet()) {
+        String section = sectionPrefs.getKey();
+        for (Map.Entry<String, Object> entry : sectionPrefs.getValue().entrySet()) {
+          String key = entry.getKey();
+          Object value = entry.getValue();
+          preferences.set(section, key, value);
+        }
+      }
+    }
 
     // Get product from Opera
     settings.setProduct(utils().getProduct());
